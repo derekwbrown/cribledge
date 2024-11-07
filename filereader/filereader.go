@@ -81,24 +81,32 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 			if len(lines[i]) == 0 {
 				continue
 			}
-			// check for match
-
-			// make the callback
-			if !mf(strings.TrimRight(string(lines[i]), "\r\n")) {
+			sent, more := sendOnMatch(string(lines[i]), matchstring, mf)
+			if sent {
+				matches++
+			}
+			
+			if !more {
 				return fmt.Errorf("callback aborted")
 			}
-			matches++
 			// got all the lines we wanted
 			if matchcount > 0 && matches >= matchcount {
 				return nil
 			}
 		}
 		if state.lastEndPos == 0{
-			mf(strings.TrimRight(string(lines[0]), "\r\n")) 
+			sendOnMatch(string(lines[0]), matchstring, mf)
 			break
 		}
 		state.overflow = make([]byte, len(lines[0]))
 		copy(state.overflow, lines[0])
 	}
 	return nil
+}
+
+func sendOnMatch(line string, matchstring string, mf MatchFunc) (sent, stop bool) {
+	if matchstring == "" || strings.Contains(string(line), matchstring) {
+		return true, mf(strings.TrimRight(string(line), "\r\n")) 
+	}
+	return false, true
 }
