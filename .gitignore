@@ -24,3 +24,8 @@ go.work.sum
 # env file
 .env
 .vscode
+
+# wix files
+*.wixobj
+*.wixpdb
+*.msi

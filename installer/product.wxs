@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*"
+           Language="1033"
+           Manufacturer="Derek Brown"
+           Name="Cribl Takehome"
+           UpgradeCode="457f5f7e-5774-40af-99a5-f12f14deb229"
+           Version="1.0.0.0">
+
+    <Package InstallScope="perMachine" 
+             InstallPrivileges="elevated"
+             Compressed="yes" />
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="TakeHome">
+          <Component Id="ProductComponent">
+            <File KeyPath="yes" Source="..\cribledge.exe"></File>
+            <ServiceInstall Id="ServiceInstaller"
+                            Type="ownProcess"
+                            Vital="yes"
+                            Name="CriblTakehome"
+                            DisplayName="Cribl Takehome"
+                            Description="Cribl Takehome"
+                            Start="auto"
+                            Account="LocalSystem"
+                            ErrorControl="ignore"
+                            Interactive="no"/>
+            <ServiceControl Id="StartService"
+                            Start="install"
+                            Stop="both"
+                            Remove="uninstall"
+                            Name="CriblTakehome"
+                            Wait="yes"/>
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="CommonAppDataFolder" SourceName="CommonAppData">
+        <Component Id="romeotext"
+                   Guid="f98103b9-fc45-4db0-8f4f-747b85b5936d"
+                   NeverOverwrite="no"
+                   Permanent="no">
+          <File Id="romeoandjuliet"
+              Name="romeo.txt"
+              Source="..\testdata\romeo-and-juliet_TXT_FolgerShakespeare.txt"/>
+        </Component>
+    </Directory>
+    </Directory>
+
+    <Feature Id="HelloWorldFeature">
+      <ComponentRef Id="ProductComponent" />
+      <ComponentRef Id="romeotext"/>
+    </Feature>
+
+  </Product>
+</Wix>
