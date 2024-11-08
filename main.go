@@ -3,42 +3,28 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	
 )
 
 
+// query arguments
+// filename=name, can include path separators
+// count=number, the number of lines to read
+// match=string, the string to match
+
 func main() {
-	
-	// set up a default http handler
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Received a / request:", r.URL.Path)
-		fmt.Println("GET params were:", r.URL.Query())
 
-		// respond with a simple 200
-		w.WriteHeader(http.StatusOK)
-	})
-	http.HandleFunc("/bar/bar/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Received a bar bar request:", r.URL.Path)
-		fmt.Println("GET params were:", r.URL.Query())
+	// override the root directory
+	rootDirectory = filepath.Join(".", "testdata")
 
-		// respond with a simple 200
-		w.WriteHeader(http.StatusOK)
-	})
-	http.HandleFunc("/bar/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Received a bar request:", r.URL.Path)
-		fmt.Println("GET params were:", r.URL.Query())
-
-		// respond with a simple 200
-		w.WriteHeader(http.StatusOK)
-	})
-	
-	http.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Received a foo request:", r.URL.Path)
-		fmt.Println("GET params were:", r.URL.Query())
-
-		// respond with a simple 200
-		w.WriteHeader(http.StatusOK)
-	})
-	// start the server
-	http.ListenAndServe(":8080", nil)
+	s := FileServer()
+	defer StopServer(s)
+	done := make(chan os.Signal, 1)
+  	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
+  	fmt.Println("Blocking, press ctrl+c to continue...")
+  	<-done  // Will block here u
 }
