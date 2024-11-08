@@ -9,7 +9,7 @@ import (
 	"github.com/derekwbrown/cribledge/filereader"
 )
 var (
-	rootDirectory = filepath.Join("c:", "ProgramData")
+	rootDirectory = filepath.Join("c:\\", "ProgramData")
 
 )
 
