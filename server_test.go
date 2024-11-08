@@ -1,4 +1,5 @@
 package main
+
 import (
 	"fmt"
 	"io"
@@ -55,8 +56,8 @@ func validateFileReversed(t *testing.T, filename string, body []byte) {
 		bodyindex--
 	}
 	assert.Equal(t, -1, bodyindex)
-	assert.Equal(t, len(filelines) -1, sourceindex)
-	
+	assert.Equal(t, len(filelines)-1, sourceindex)
+
 }
 func TestServer(t *testing.T) {
 	s := FileServer()
@@ -64,7 +65,7 @@ func TestServer(t *testing.T) {
 	// override the root directory
 	rootDirectory = filepath.Join(".", "testdata")
 
-	t.Run("Test file comes back in reverse order", func(t *testing.T){
+	t.Run("Test file comes back in reverse order", func(t *testing.T) {
 		// ask to see the test `dmesg` file in its entirety
 		fn := "dmesg"
 		req, err := setupRequest(fn, 0, "")
@@ -76,11 +77,11 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		
+
 		validateFileReversed(t, fn, body)
-		
+
 	})
-	t.Run("Test correct number of matches", func(t *testing.T){
+	t.Run("Test correct number of matches", func(t *testing.T) {
 		// ask to see the test `dmesg` file in its entirety
 		req, err := setupRequest("dmesg", 0, "cpu")
 		require.NoError(t, err)
@@ -91,7 +92,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		
+
 		bodylines := strings.Split(string(body), "\n")
 		// strip off the last line if it's empty
 		if len(bodylines[len(bodylines)-1]) == 0 {
@@ -100,7 +101,7 @@ func TestServer(t *testing.T) {
 
 		assert.Equal(t, 12, len(bodylines))
 	})
-	t.Run("Test correct number of matches with match limit", func(t *testing.T){
+	t.Run("Test correct number of matches with match limit", func(t *testing.T) {
 		matchlimit := 5
 		// ask to see the test `dmesg` file in its entirety
 		req, err := setupRequest("dmesg", matchlimit, "cpu")
@@ -112,7 +113,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		
+
 		bodylines := strings.Split(string(body), "\n")
 		// strip off the last line if it's empty
 		if len(bodylines[len(bodylines)-1]) == 0 {
@@ -121,7 +122,7 @@ func TestServer(t *testing.T) {
 
 		assert.Equal(t, matchlimit, len(bodylines))
 	})
-	t.Run("Test subdirectory", func(t *testing.T){
+	t.Run("Test subdirectory", func(t *testing.T) {
 		// ask to see the test `dmesg` file in its entirety
 		fn := "path1\\syslog"
 		req, err := setupRequest(fn, 0, "")
@@ -133,7 +134,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
-		
+
 		validateFileReversed(t, fn, body)
 	})
 }

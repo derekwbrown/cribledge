@@ -9,19 +9,21 @@ import (
 )
 
 type filestate struct {
-	filename string // the name of the file
-	fh	*os.File // the file handle
-	lastEndPos int64 // the last end position
-	lastStartPos int64 // the last start position
-	readsize int64
-	overflow []byte
-	readbuf []byte
+	filename     string   // the name of the file
+	fh           *os.File // the file handle
+	lastEndPos   int64    // the last end position
+	lastStartPos int64    // the last start position
+	readsize     int64
+	overflow     []byte
+	readbuf      []byte
 }
-var ( 
+
+var (
 	readIncrement = int64(1024)
 )
+
 // MatchFunc will be called for every matching line in the file.
-// if the function returns false, reading will stop independent of 
+// if the function returns false, reading will stop independent of
 // whether the count has been reached
 type MatchFunc func(string) bool
 
@@ -42,12 +44,12 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 	fs := fi.Size()
 
 	state := &filestate{
-		filename: filename,
-		fh: fh,
-		lastEndPos: fs,
+		filename:     filename,
+		fh:           fh,
+		lastEndPos:   fs,
 		lastStartPos: fs,
-		readsize: readIncrement,
-		readbuf: make([]byte, readIncrement),
+		readsize:     readIncrement,
+		readbuf:      make([]byte, readIncrement),
 	}
 
 	matches := 0
@@ -85,7 +87,7 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 			if sent {
 				matches++
 			}
-			
+
 			if !more {
 				return fmt.Errorf("callback aborted")
 			}
@@ -94,7 +96,7 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 				return nil
 			}
 		}
-		if state.lastEndPos == 0{
+		if state.lastEndPos == 0 {
 			sendOnMatch(string(lines[0]), matchstring, mf)
 			break
 		}
@@ -106,7 +108,7 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 
 func sendOnMatch(line string, matchstring string, mf MatchFunc) (sent, stop bool) {
 	if matchstring == "" || strings.Contains(string(line), matchstring) {
-		return true, mf(strings.TrimRight(string(line), "\r\n")) 
+		return true, mf(strings.TrimRight(string(line), "\r\n"))
 	}
 	return false, true
 }

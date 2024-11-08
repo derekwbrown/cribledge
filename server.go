@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
+	"github.com/derekwbrown/cribledge/filereader"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
-	"github.com/derekwbrown/cribledge/filereader"
 )
+
 var (
 	rootDirectory = filepath.Join("c:\\", "ProgramData")
-
 )
 
 func FileServer() *http.Server {
@@ -20,7 +20,7 @@ func FileServer() *http.Server {
 	}
 	go func() {
 		http.HandleFunc("/getlog", func(w http.ResponseWriter, r *http.Request) {
-			
+
 			filename := r.URL.Query().Get("filename")
 			if filename == "" {
 				http.Error(w, "filename is required", http.StatusBadRequest)
@@ -57,10 +57,10 @@ func FileServer() *http.Server {
 
 func StopServer(server *http.Server) error {
 	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
-    defer shutdownRelease()
+	defer shutdownRelease()
 
-    if err := server.Shutdown(shutdownCtx); err != nil {
-        return err
-    }
-    return nil
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		return err
+	}
+	return nil
 }
