@@ -12,6 +12,9 @@ installer/product.wixobj: installer/product.wxs cribledge.exe
 cribbl.msi: installer/product.wixobj
 	light -out cribbl.msi -spdb installer/product.wixobj
 
+test:
+	go test -count 1 -v ./...
+
 clean:
 	go clean .
 	rm -f cribbl.msi
