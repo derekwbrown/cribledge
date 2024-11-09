@@ -123,7 +123,8 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, matchlimit, len(bodylines))
 	})
 	t.Run("Test subdirectory", func(t *testing.T) {
-		// ask to see the test `dmesg` file in its entirety
+		// ask to see the test `syslog` file in its entirety.  The syslog file
+		// appears in the `path1` subdirectory.
 		fn := "path1\\syslog"
 		req, err := setupRequest(fn, 0, "")
 		require.NoError(t, err)
