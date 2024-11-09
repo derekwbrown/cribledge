@@ -3,6 +3,10 @@ sources := $(wildcard */*.go)
 
 all: cribbl.msi
 
+exe: cribledge.exe
+
+msi: cribbl.msi
+
 cribledge.exe: $(sources)
 	go build .
 
