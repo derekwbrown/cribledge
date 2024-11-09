@@ -37,9 +37,16 @@ func FileServer() *http.Server {
 				}
 			}
 			match := r.URL.Query().Get("match")
+			matchregex := r.URL.Query().Get("matchregex")
+
+			if match != "" && matchregex != "" {
+				http.Error(w, "only one of match or matchregex can be specified", http.StatusBadRequest)
+				return
+			}
+
 			completePath := filepath.Join(rootDirectory, filename)
 
-			err = filereader.ReverseReadFile(completePath, intcount, match, func(line string) bool {
+			err = filereader.ReverseReadFile(completePath, intcount, match, matchregex, func(line string) bool {
 				w.Write([]byte(line))
 				w.Write([]byte("\r\n"))
 				return true

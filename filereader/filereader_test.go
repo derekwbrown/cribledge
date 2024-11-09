@@ -14,7 +14,7 @@ func TestReverseReadFileCanReadWhole(t *testing.T) {
 
 	testinfile := filepath.Join("testdata", "simpleinput.txt")
 	linecount := 0
-	err := ReverseReadFile(testinfile, 0, "", func(line string) bool {
+	err := ReverseReadFile(testinfile, 0, "", "", func(line string) bool {
 		assert.Equal(t, expectedLengths[linecount], len(line))
 		linecount++
 		return true
@@ -27,7 +27,7 @@ func TestReverseReadShortReads(t *testing.T) {
 	readIncrement = int64(30)
 	testinfile := filepath.Join("testdata", "simpleinput.txt")
 	linecount := 0
-	err := ReverseReadFile(testinfile, 0, "", func(line string) bool {
+	err := ReverseReadFile(testinfile, 0, "", "", func(line string) bool {
 		assert.Equal(t, expectedLengths[linecount], len(line))
 		linecount++
 		return true
@@ -42,7 +42,7 @@ func TestReverseReadOnBoundaries(t *testing.T) {
 			readIncrement = int64(l)
 			testinfile := filepath.Join("testdata", "simpleinput.txt")
 			linecount := 0
-			err := ReverseReadFile(testinfile, 0, "", func(line string) bool {
+			err := ReverseReadFile(testinfile, 0, "", "", func(line string) bool {
 				assert.Equal(t, expectedLengths[linecount], len(line))
 				linecount++
 				return true
@@ -59,7 +59,7 @@ func TestReverseReadStopsAtCount(t *testing.T) {
 		t.Run(fmt.Sprintf("Stop at %d lines", i), func(t *testing.T) {
 			testinfile := filepath.Join("testdata", "simpleinput.txt")
 			linecount := 0
-			err := ReverseReadFile(testinfile, i, "", func(line string) bool {
+			err := ReverseReadFile(testinfile, i, "", "", func(line string) bool {
 				assert.Equal(t, expectedLengths[linecount], len(line))
 				linecount++
 				return true
@@ -89,8 +89,30 @@ func TestReverseReadWithSimpleMatching(t *testing.T) {
 		t.Run(fmt.Sprintf("Match %s", matchstring), func(t *testing.T) {
 			testinfile := filepath.Join("testdata", "simpleinput.txt")
 			matches := 0
-			err := ReverseReadFile(testinfile, 0, matchstring, func(line string) bool {
+			err := ReverseReadFile(testinfile, 0, matchstring, "", func(line string) bool {
 				matches++
+				return true
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, expectedmatches, matches)
+		})
+	}
+}
+
+func TestReverseReadWithRegexMatching(t *testing.T) {
+	// map of string we're to match, with expected match values
+	matchtests := map[string]int{
+		"^[a]{5}$":  0, // this should not match, because the a line has more than 5
+		"^[a]{32}$": 1, // this should match, because the a line has exactly 32
+		"[a]{33}":   0, // this should not match, because the a line has exactly 32
+	}
+	for matchstring, expectedmatches := range matchtests {
+		t.Run(fmt.Sprintf("Match %s", matchstring), func(t *testing.T) {
+			testinfile := filepath.Join("testdata", "simpleinput.txt")
+			matches := 0
+			err := ReverseReadFile(testinfile, 0, "", matchstring, func(line string) bool {
+				matches++
+				fmt.Printf("got match: %s\n", line)
 				return true
 			})
 			assert.Nil(t, err)

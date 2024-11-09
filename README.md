@@ -74,6 +74,9 @@ With the following query encoded arguments:
 - filename  The filename is path relative to `c:\programdata`.  The filename argument is a required argument.  
 - count  The number of matching lines to return.  This is an integer value.  A negative or zero value, and all of the lines will be returned.
 - match  A case-sensitve match string; if the string appears in a line, then the line is returned.  If this argument is not present or empty, then all lines are returned.
+- matchregex  A regular expression match string; use a regular expression to make more complex matches.
+
+Note that match and matchregex are mutually exclusive; providing both returns an error.
 
 An example url would be 
 ```
@@ -101,6 +104,7 @@ Some shall be pardoned, and some punished.
 (the last 4 lines of the document, in reverse order)
 
 ### Example 2
+
 ```
 (iwr -UseBasicParsing -DisableKeepAlive "http://localhost:8080/getlog?filename=romeo.txt&count=8&match=Romeo").content
 ```
@@ -116,3 +120,17 @@ The form of death. Meantime I writ to Romeo
 And she, there dead, that Romeo's faithful wife.
 ```
 (the last 8 references to Romeo)
+
+### Example 3 (Search by regex)
+```
+(iwr -UseBasicParsing -DisableKeepAlive "http://localhost:8080/getlog?filename=romeo.txt&count=8&matchregex=(?i)wherefore").content
+```
+returns all of the uses of "wherefore", whether capitalized or not:
+
+```
+All this is comfort. Wherefore weep I then?
+But wherefore, villain, didst thou kill my cousin?
+How camest thou hither, tell me, and wherefore?
+O Romeo, Romeo, wherefore art thou Romeo?
+Why, how now, kinsman? Wherefore storm you so?
+```

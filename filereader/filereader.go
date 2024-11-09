@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
-	//"math"
 )
 
 type filestate struct {
@@ -28,7 +28,7 @@ var (
 type MatchFunc func(string) bool
 
 // ReadFile reads the file from the end, and (optionally) matches each line
-func ReverseReadFile(filename string, matchcount int, matchstring string, mf MatchFunc) error {
+func ReverseReadFile(filename string, matchcount int, matchstring, matchregex string, mf MatchFunc) error {
 	// open the file
 	fh, err := os.Open(filename)
 	if err != nil {
@@ -36,6 +36,13 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 	}
 	defer fh.Close()
 
+	var re *regexp.Regexp
+	if matchregex != "" {
+		re, err = regexp.Compile(matchregex)
+		if err != nil {
+			return err
+		}
+	}
 	// get the file size
 	fi, err := fh.Stat()
 	if err != nil {
@@ -83,7 +90,7 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 			if len(lines[i]) == 0 {
 				continue
 			}
-			sent, more := sendOnMatch(string(lines[i]), matchstring, mf)
+			sent, more := sendOnMatch(string(lines[i]), matchstring, re, mf)
 			if sent {
 				matches++
 			}
@@ -97,7 +104,7 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 			}
 		}
 		if state.lastEndPos == 0 {
-			sendOnMatch(string(lines[0]), matchstring, mf)
+			sendOnMatch(string(lines[0]), matchstring, re, mf)
 			break
 		}
 		state.overflow = make([]byte, len(lines[0]))
@@ -106,7 +113,14 @@ func ReverseReadFile(filename string, matchcount int, matchstring string, mf Mat
 	return nil
 }
 
-func sendOnMatch(line string, matchstring string, mf MatchFunc) (sent, stop bool) {
+func sendOnMatch(line string, matchstring string, re *regexp.Regexp, mf MatchFunc) (sent, stop bool) {
+	if re != nil {
+		l := strings.TrimRight(line, "\r\n")
+		if re.MatchString(l) {
+			return true, mf(l)
+		}
+		return false, true
+	}
 	if matchstring == "" || strings.Contains(string(line), matchstring) {
 		return true, mf(strings.TrimRight(string(line), "\r\n"))
 	}

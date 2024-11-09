@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupRequest(filename string, lines int, matchparam string) (*http.Request, error) {
+func setupRequest(filename string, lines int, matchparam, regexpstr string) (*http.Request, error) {
 	req, err := http.NewRequest("GET", "http://localhost:8080/getlog", nil)
 	if err != nil {
 		return nil, err
@@ -27,6 +27,9 @@ func setupRequest(filename string, lines int, matchparam string) (*http.Request,
 	}
 	if matchparam != "" {
 		q.Add("match", matchparam)
+	}
+	if regexpstr != "" {
+		q.Add("matchregex", regexpstr)
 	}
 	req.URL.RawQuery = q.Encode()
 
@@ -68,7 +71,7 @@ func TestServer(t *testing.T) {
 	t.Run("Test file comes back in reverse order", func(t *testing.T) {
 		// ask to see the test `dmesg` file in its entirety
 		fn := "dmesg"
-		req, err := setupRequest(fn, 0, "")
+		req, err := setupRequest(fn, 0, "", "")
 		require.NoError(t, err)
 
 		res, err := http.DefaultClient.Do(req)
@@ -83,7 +86,7 @@ func TestServer(t *testing.T) {
 	})
 	t.Run("Test correct number of matches", func(t *testing.T) {
 		// ask to see the test `dmesg` file in its entirety
-		req, err := setupRequest("dmesg", 0, "cpu")
+		req, err := setupRequest("dmesg", 0, "cpu", "")
 		require.NoError(t, err)
 
 		res, err := http.DefaultClient.Do(req)
@@ -104,7 +107,7 @@ func TestServer(t *testing.T) {
 	t.Run("Test correct number of matches with match limit", func(t *testing.T) {
 		matchlimit := 5
 		// ask to see the test `dmesg` file in its entirety
-		req, err := setupRequest("dmesg", matchlimit, "cpu")
+		req, err := setupRequest("dmesg", matchlimit, "cpu", "")
 		require.NoError(t, err)
 
 		res, err := http.DefaultClient.Do(req)
@@ -126,7 +129,7 @@ func TestServer(t *testing.T) {
 		// ask to see the test `syslog` file in its entirety.  The syslog file
 		// appears in the `path1` subdirectory.
 		fn := "path1\\syslog"
-		req, err := setupRequest(fn, 0, "")
+		req, err := setupRequest(fn, 0, "", "")
 		require.NoError(t, err)
 
 		res, err := http.DefaultClient.Do(req)
@@ -137,5 +140,57 @@ func TestServer(t *testing.T) {
 		require.NoError(t, err)
 
 		validateFileReversed(t, fn, body)
+	})
+
+	t.Run("Test regex case insensitve search", func(t *testing.T) {
+		// ask to see the test `dmesg` file in its entirety
+		req, err := setupRequest("dmesg", 0, "", "(?i)sEcure(?-i)")
+		require.NoError(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		require.NoError(t, err)
+
+		bodylines := strings.Split(string(body), "\n")
+		// strip off the last line if it's empty
+		if len(bodylines[len(bodylines)-1]) == 0 {
+			bodylines = bodylines[:len(bodylines)-1]
+		}
+
+		assert.Equal(t, 11, len(bodylines))
+	})
+	t.Run("Test regex case insensitve search for secure twice", func(t *testing.T) {
+		// ask to see the test `dmesg` file in its entirety
+		req, err := setupRequest("dmesg", 0, "", "(?i)sEcure(?-i).*(?i)sEcure(?-i)")
+		require.NoError(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		require.NoError(t, err)
+
+		bodylines := strings.Split(string(body), "\n")
+		// strip off the last line if it's empty
+		if len(bodylines[len(bodylines)-1]) == 0 {
+			bodylines = bodylines[:len(bodylines)-1]
+		}
+
+		assert.Equal(t, 2, len(bodylines))
+	})
+	t.Run("Test passing simple and regex match has error", func(t *testing.T) {
+		// ask to see the test `dmesg` file in its entirety
+		req, err := setupRequest("dmesg", 0, "secure", "(?i)sEcure(?-i).*(?i)sEcure(?-i)")
+		require.NoError(t, err)
+
+		res, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, http.StatusOK, res.StatusCode)
+
 	})
 }
