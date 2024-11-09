@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	webserver "github.com/derekwbrown/cribledge/server"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/debug"
 	"log"
@@ -16,7 +17,7 @@ func (m *myService) Execute(args []string, r <-chan svc.ChangeRequest, status ch
 
 	status <- svc.Status{State: svc.StartPending}
 
-	server := FileServer()
+	server := webserver.FileServer()
 
 	status <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
@@ -35,7 +36,7 @@ loop:
 			}
 		}
 	}
-	StopServer(server)
+	webserver.StopServer(server)
 	status <- svc.Status{State: svc.StopPending}
 	return false, 1
 }

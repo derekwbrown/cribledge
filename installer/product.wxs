@@ -47,7 +47,7 @@
                    Permanent="no">
           <File Id="romeoandjuliet"
               Name="romeo.txt"
-              Source="..\testdata\romeo-and-juliet_TXT_FolgerShakespeare.txt"/>
+              Source="..\server\testdata\romeo-and-juliet_TXT_FolgerShakespeare.txt"/>
         </Component>
     </Directory>
     </Directory>
